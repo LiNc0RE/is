@@ -2,11 +2,11 @@
 solve(Strategy):-
   start_description(StartState),
   solve((start,StartState,_),Strategy).
-  
-  
-% Prädikat search: 
-%   1. Argument ist die Liste aller Pfade. Der aktuelle Pfad ist an erster Stelle. 
-%   Jeder Pfad ist als Liste von Zuständen repräsentiert, allerdings in falscher 
+
+
+% Prï¿½dikat search:
+%   1. Argument ist die Liste aller Pfade. Der aktuelle Pfad ist an erster Stelle.
+%   Jeder Pfad ist als Liste von Zustï¿½nden reprï¿½sentiert, allerdings in falscher
 %   Reihenfolge, d.h. der Startzustand ist an letzter Position.
 %   2. Argument ist die Strategie
 %   3. Argument ist der Ergebnis-Pfad.
@@ -21,7 +21,7 @@ solve(StartNode,Strategy) :-
 
 write_solution(Path):-
   nl,write('SOLUTION:'),nl,
-  write_actions(Path).  
+  write_actions(Path).
 
 write_actions([]).
 
@@ -34,16 +34,16 @@ write_actions([(Action,_,_)|Rest]):-
 
 
 % Abbruchbedingung: Wenn ein Zielzustand erreicht ist, wird der aktuelle Pfad an den
-% dritten Parameter übertragen.
+% dritten Parameter ï¿½bertragen.
 %
-search([[FirstNode|Predecessors]|_],_,[FirstNode|Predecessors]) :- 
+search([[FirstNode|Predecessors]|_],_,[FirstNode|Predecessors]) :-
   goal_node(FirstNode),
   nl,write('SUCCESS'),nl,!.
 
 
-search([[FirstNode|Predecessors]|RestPaths],Strategy,Solution) :- 
-  expand(FirstNode,Children),                                    % Nachfolge-Zustände berechnen
-  generate_new_paths(Children,[FirstNode|Predecessors],NewPaths), % Nachfolge-Zustände einbauen 
+search([[FirstNode|Predecessors]|RestPaths],Strategy,Solution) :-
+  expand(FirstNode,Children),                                    % Nachfolge-Zustï¿½nde berechnen
+  generate_new_paths(Children,[FirstNode|Predecessors],NewPaths), % Nachfolge-Zustï¿½nde einbauen
   insert_new_paths(Strategy,NewPaths,RestPaths,AllPaths),        % Neue Pfade einsortieren
   search(AllPaths,Strategy,Solution).
 
@@ -74,28 +74,28 @@ generate_new_paths(Children,Path,NewPaths):-
 
 
 
-% Abbruchbedingung, wenn alle Kindzustände abgearbeitet sind.
+% Abbruchbedingung, wenn alle Kindzustï¿½nde abgearbeitet sind.
 %
 generate_new_paths_help([],_,_,[]).
 
 
 % Falls der Kindzustand bereits im Pfad vorhanden war, wird der gesamte Pfad verworfen,
-% denn er würde nur in einem Zyklus enden. (Dies betrifft nicht die Fortsetzung des 
-% Pfades mit Geschwister-Kindern.) Es wird nicht überprüft, ob der Kindzustand in einem
-% anderen Pfad vorkommt, denn möglicherweise ist dieser Weg der günstigere.
+% denn er wï¿½rde nur in einem Zyklus enden. (Dies betrifft nicht die Fortsetzung des
+% Pfades mit Geschwister-Kindern.) Es wird nicht ï¿½berprï¿½ft, ob der Kindzustand in einem
+% anderen Pfad vorkommt, denn mï¿½glicherweise ist dieser Weg der gï¿½nstigere.
 %
-generate_new_paths_help([FirstChild|RestChildren],Path,States,RestNewPaths):- 
+generate_new_paths_help([FirstChild|RestChildren],Path,States,RestNewPaths):-
   get_state(FirstChild,State),state_member(State,States),!,
   generate_new_paths_help(RestChildren,Path,States,RestNewPaths).
 
 
-% Ansonsten, also falls der Kindzustand noch nicht im Pfad vorhanden war, wird er als 
+% Ansonsten, also falls der Kindzustand noch nicht im Pfad vorhanden war, wird er als
 % Nachfolge-Zustand eingebaut.
 %
-generate_new_paths_help([FirstChild|RestChildren],Path,States,[[FirstChild|Path]|RestNewPaths]):- 
+generate_new_paths_help([FirstChild|RestChildren],Path,States,[[FirstChild|Path]|RestNewPaths]):-
   generate_new_paths_help(RestChildren,Path,States,RestNewPaths).
 
- 
+
 get_state((_,State,_),State).
 
 
@@ -137,9 +137,54 @@ insert_new_paths(informed,NewPaths,OldPaths,AllPaths):-
   insert_new_paths_informed(NewPaths,OldPaths,AllPaths),
   write_action(AllPaths),
   write_state(AllPaths).
+insert_new_paths(hillclimbing_w_backtracking,NewPaths,OldPaths,AllPaths):-
+	eval_paths(NewPaths),
+	insert_new_paths_hillclimbing_w_backtracking(NewPaths,OldPaths,AllPaths),
+	write_action(AllPaths),
+        write_state(AllPaths).
+
+cheaper(>, [(_Action1, _State1, Value1) | _RestPath1], [(_Action2, _State2, Value2) | _RestPath2]) :-
+	Value1 > Value2.
+cheaper(<, [(_Action1, _State1, Value1) | _RestPath1], [(_Action2, _State2, Value2) | _RestPath2]) :-
+	Value1 < Value2.
+cheaper(=, [(_Action1, _State1, Value1) | _RestPath1], [(_Action2, _State2, Value2) | _RestPath2]) :-
+	Value1 = Value2.
 
 
 
+
+
+insert_new_paths_hillclimbing_w_backtracking(NewPaths,OldPaths,AllPaths):-
+	predsort(cheaper, NewPaths, NewPathsSorted),
+	write("Sorted: "), writeln(NewPathsSorted),
+	append(NewPathsSorted, OldPaths, AllPaths),
+	write_action(AllPaths),
+        write_state(AllPaths).
+
+
+
+insert_new_paths(steepest_hillclimbing,NewPaths,OldPaths,AllPaths):-
+	eval_paths(NewPaths),
+	insert_new_paths_steepest_hillclimbing(NewPaths,OldPaths,AllPaths),
+	write_action(AllPaths),
+        write_state(AllPaths).
+
+
+
+insert_new_paths_steepest_hillclimbing(NewPaths,OldPaths,AllPaths) :-
+	min_list_heuristic(NewPaths, Min),
+	AllPaths = [Min	| OldPaths].
+
+min_list_heuristic([State | RestPath], Min) :-
+	min_list_heuristic_(State, RestPath, Min).
+
+min_list_heuristic_(Min, [], Min).
+min_list_heuristic_([(ActionCurrMin, StateCurrMin, ValueCurrMin) | RestPathCurrMin], [[(_Action, _State, Value) | _RestPath] | RestNodes], Min) :-
+	ValueCurrMin =< Value, !,
+	min_list_heuristic_([(ActionCurrMin, StateCurrMin, ValueCurrMin) | RestPathCurrMin], RestNodes, Min).
+min_list_heuristic_([(_Action, _State, ValueCurrMin) | _RestPathCurrMin], [[(Action, State, Value) | RestPath] | RestNodes], Min) :-
+	ValueCurrMin > Value, !,
+	min_list_heuristic_([(Action, State, Value) | RestPath], RestNodes, Min).
 
 
 

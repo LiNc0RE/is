@@ -94,13 +94,19 @@ state_member(State,[_|RestStates]):- state_member(State, RestStates).
 
 
 eval_path([(_,State,Value3)|RestPath]) :-
-	eval_path3([(_,State,Value3)|RestPath]).
+	eval_path1([(_,State,Value3)|RestPath]).
 	%write("Heuristic: "), writeln(Value3).
 	%eval_path2([(_,State,Value2)|RestPath]),
 	%writeln("~~~~~~~~~~~~~~~~~~~~~~~~~"),
 	%write("Value2: "), writeln(Value2),
 	%eval_path1([(_,State,Value1)|RestPath]).
 	%write("Value1: "), writeln(Value1).
+
+greedy_eval_path3([(_,State,Value)|_RestPath]) :-
+	include(on_table, State, StateOnTable),
+	goal_description(Goal),
+	eval_path3_(StateOnTable, Goal, State, Value).
+
 
 eval_path3([(_,State,Value)|RestPath]) :-
 	include(on_table, State, StateOnTable),
@@ -161,6 +167,15 @@ eval_path1_([(_,State,Value)|RestPath]):-
         length(Intersection, LengthIntersection),
         length(RestPath, LengthRestPath),
         Value is LengthGoal - LengthIntersection + LengthRestPath.
+
+greedy_eval_path1([(_,State,Value)|_RestPath]):-
+        goal_description(Goal),
+        include(is_on, Goal, Is_Ons_Goal),
+        intersection(Goal, State, Intersection),
+        include(is_on, Intersection, Is_Ons_Intersection),
+        length(Is_Ons_Goal, LengthGoal),
+        length(Is_Ons_Intersection, LengthIntersection),
+        Value is LengthGoal - LengthIntersection.
 
 eval_path1([(_,State,Value)|RestPath]):-
         goal_description(Goal),
