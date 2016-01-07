@@ -41,6 +41,50 @@ goal_description([
   handempty
   ]).
 
+start_description_complex([
+  block(block1),
+  block(block2),
+  block(block3),
+  block(block4),
+  block(block5),
+  block(block6),
+  block(block7),
+  block(block8),
+  block(block9),
+  on(table, block4),
+  on(block4, block5),
+  on(block5, block7),
+  on(block7, block6),
+  on(table, block2),
+  on(block2, block3),
+  on(block3, block1),
+  on(table, block8),
+  on(table, block9),
+  clear(block1),
+  clear(block6),
+  clear(block8),
+  clear(block9),
+  handempty
+  ]).
+
+goal_description_complex([
+  block(block1),
+  block(block2),
+  block(block3),
+  block(block4),
+  block(block5),
+  block(block6),
+  block(block7),
+  on(table, block1),
+  on(block1, block2),
+  on(block2, block3),
+  on(block3, block4),
+  on(block4, block5),
+  on(block5, block6),
+  on(block6, block7),
+  clear(block7),
+  handempty]).
+
 
 is_on(on(_, _)).
 clear(_).
@@ -72,7 +116,7 @@ check_empty(State,RestIntersection,Goal,Accu,Result, ResultFU) :-
 
 start_node((start,_,_)).
 
-goal_node((_,State,_)):- goal_description(Goal), subtract(State, Goal, []).
+goal_node((_,State,_)):- goal_description(Goal), mysubset(Goal, State).
  % "Zielbedingungen einlesen"
  % "Zustand gegen Zielbedingungen testen".
 
@@ -92,6 +136,8 @@ state_member(State,[FirstState|_]):- subtract(State, FirstState, []), !.
 state_member(State,[_|RestStates]):- state_member(State, RestStates).
   %"rekursiver Aufruf".
 
+eval_path_greedy([(_,State,Value)|RestPath]) :-
+	greedy_eval_path3([(_,State,Value)|RestPath]).
 
 eval_path([(_,State,Value3)|RestPath]) :-
 	eval_path1([(_,State,Value3)|RestPath]).

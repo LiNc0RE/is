@@ -143,6 +143,13 @@ insert_new_paths(hillclimbing_w_backtracking,NewPaths,OldPaths,AllPaths):-
 	write_action(AllPaths),
         write_state(AllPaths).
 
+insert_new_paths(greedy,NewPaths,OldPaths,AllPaths):-
+  eval_paths_greedy(NewPaths),
+  insert_new_paths_informed(NewPaths,OldPaths,AllPaths),
+  write_action(AllPaths),
+  write_state(AllPaths).
+
+
 cheaper(>, [(_Action1, _State1, Value1) | _RestPath1], [(_Action2, _State2, Value2) | _RestPath2]) :-
 	Value1 > Value2.
 cheaper(<, [(_Action1, _State1, Value1) | _RestPath1], [(_Action2, _State2, Value2) | _RestPath2]) :-
