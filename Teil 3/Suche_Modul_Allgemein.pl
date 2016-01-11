@@ -165,7 +165,8 @@ cheaper(=, [(_Action1, _State1, Value1) | _RestPath1], [(_Action2, _State2, Valu
 
 
 insert_new_paths_hillclimbing_w_backtracking(NewPaths,OldPaths,AllPaths):-
-	predsort(cheaper, NewPaths, NewPathsSorted),
+	insert_new_paths_informed(NewPaths,[],NewPathsSorted),
+	%predsort(cheaper, NewPaths, NewPathsSorted),
 	%write("Sorted: "), writeln(NewPathsSorted),
 	append(NewPathsSorted, OldPaths, AllPaths).
 	%write_action(AllPaths),

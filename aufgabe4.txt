@@ -32,7 +32,7 @@ A* vs gierige Bestensuche
 	complex:
 		greedy: % 1,276,670,451 inferences, 193.890 CPU in 193.823 seconds (100% CPU, 6584500 Lips) (Lösung knapp nicht optimal)
 		informed: % 708,677,462 inferences, 93.143 CPU in 93.097 seconds (100% CPU, 7608499 Lips)
-		hillclimbing with backtracking: % 10,229 inferences, 0.001 CPU in 0.001 seconds (100% CPU, 9514216 Lips) -> false.
+		hillclimbing with backtracking: % 1,354,308 inferences, 0.202 CPU in 0.202 seconds (100% CPU, 6703858 Lips) (Lösung 14,8x so lang)
 		steepest ascend hillclimbing: % 10,181 inferences, 0.001 CPU in 0.001 seconds (100% CPU, 9508999 Lips) -> false.
 	simple:
 		greedy: % 537,115,991 inferences, 72.996 CPU in 72.984 seconds (100% CPU, 7358171 Lips) (Lösung knapp nicht optimal)
