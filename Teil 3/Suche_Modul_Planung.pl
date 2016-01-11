@@ -11,11 +11,13 @@
 %   (Action, State, Value)
 
 
-start_description([
+start_description_([
   block(block1),
   block(block2),
   block(block3),
   block(block4),  %mit Block4
+  block(block5),
+  on(table, block5),
   on(table,block2),
   on(table,block3),
   on(block2,block1),
@@ -23,10 +25,11 @@ start_description([
   clear(block1),
   clear(block3),
   clear(block4), %mit Block4
+  clear(block5),
   handempty
   ]).
 
-goal_description([
+goal_description_([
   block(block1),
   block(block2),
   block(block3),
@@ -41,51 +44,63 @@ goal_description([
   handempty
   ]).
 
-start_description_complex([
+start_description([
   block(block1),
   block(block2),
   block(block3),
   block(block4),
   block(block5),
-  block(block6),
-  block(block7),
   block(block8),
-  block(block9),
+  %block(block9),
   on(table, block4),
   on(block4, block5),
-  on(block5, block7),
-  on(block7, block6),
   on(table, block2),
   on(block2, block3),
   on(block3, block1),
   on(table, block8),
-  on(table, block9),
+  %on(table, block9),
   clear(block1),
-  clear(block6),
+  clear(block5),
   clear(block8),
-  clear(block9),
+  %clear(block9),
   handempty
   ]).
 
-goal_description_complex([
+winning([
   block(block1),
   block(block2),
   block(block3),
   block(block4),
   block(block5),
-  block(block6),
-  block(block7),
+  block(block8),
+  block(block9),
   on(table, block1),
   on(block1, block2),
   on(block2, block3),
   on(block3, block4),
   on(block4, block5),
-  on(block5, block6),
-  on(block6, block7),
-  clear(block7),
+  clear(block8),
+  clear(block9),
+  clear(block5),
   handempty]).
 
 
+goal_description([
+  block(block1),
+  block(block2),
+  block(block3),
+  block(block4),
+  block(block5),
+  on(table, block1),
+  on(block1, block2),
+  on(block2, block3),
+  on(block3, block4),
+  on(block4, block5),
+  clear(block5),
+  handempty]).
+
+
+is_block(block(_)).
 is_on(on(_, _)).
 clear(_).
 on_table(on(table, _)).
@@ -116,7 +131,7 @@ check_empty(State,RestIntersection,Goal,Accu,Result, ResultFU) :-
 
 start_node((start,_,_)).
 
-goal_node((_,State,_)):- goal_description(Goal), mysubset(Goal, State).
+goal_node((_,State,_)):- goal_description(Goal), mysubset(Goal, State), !.
  % "Zielbedingungen einlesen"
  % "Zustand gegen Zielbedingungen testen".
 
@@ -140,7 +155,7 @@ eval_path_greedy([(_,State,Value)|RestPath]) :-
 	greedy_eval_path3([(_,State,Value)|RestPath]).
 
 eval_path([(_,State,Value3)|RestPath]) :-
-	eval_path1([(_,State,Value3)|RestPath]).
+	eval_path3([(_,State,Value3)|RestPath]).
 	%write("Heuristic: "), writeln(Value3).
 	%eval_path2([(_,State,Value2)|RestPath]),
 	%writeln("~~~~~~~~~~~~~~~~~~~~~~~~~"),
@@ -149,42 +164,58 @@ eval_path([(_,State,Value3)|RestPath]) :-
 	%write("Value1: "), writeln(Value1).
 
 greedy_eval_path3([(_,State,Value)|_RestPath]) :-
+	%nondry
+	goal_description(Goal),
+	include(is_block, State, BlocksInState),
+	include(is_block, Goal, BlocksInGoal),
+	subtract(BlocksInState, BlocksInGoal, BlocksNotInGoal),
+	%nondry
 	include(on_table, State, StateOnTable),
 	goal_description(Goal),
-	eval_path3_(StateOnTable, Goal, State, Value).
+	eval_path3_(StateOnTable, Goal, State, BlocksNotInGoal, Value).
 
 
 eval_path3([(_,State,Value)|RestPath]) :-
-	include(on_table, State, StateOnTable),
 	goal_description(Goal),
-	eval_path3_(StateOnTable, Goal, State, Heuristic),
+	include(is_block, State, BlocksInState),
+	include(is_block, Goal, BlocksInGoal),
+	subtract(BlocksInState, BlocksInGoal, BlocksNotInGoal),
+	include(on_table, State, StateOnTable),
+	eval_path3_(StateOnTable, Goal, State, BlocksNotInGoal, Heuristic),
 	length(RestPath, LengthRestPath),
 	Value is Heuristic + LengthRestPath.
 
-eval_path3_([], _Goal, _State, 0).
-eval_path3_([Current | RestState], Goal, State, HeuristicR) :-
-	count_amount_over_lowest_false(Current, Goal, State, Amount),
-	eval_path3_(RestState, Goal, State, Heuristic),
+eval_path3_([], _Goal, _State, _BlocksNotInGoal, 0).
+eval_path3_([Current | RestState], Goal, State, BlocksNotInGoal, HeuristicR) :-
+	count_amount_over_lowest_false(Current, Goal, State, BlocksNotInGoal, Amount),
+	eval_path3_(RestState, Goal, State, BlocksNotInGoal, Heuristic),
 	HeuristicR is Amount + Heuristic.
 
 % is in right spot and has blocks above
-count_amount_over_lowest_false(on(X, Y), Goal, State, Amount) :-
+count_amount_over_lowest_false(on(X, Y), Goal, State, BlocksNotInGoal, Amount) :-
 	member(on(X, Y), Goal),
 	member(on(Y, Z), State), !,
-	count_amount_over_lowest_false(on(Y, Z), Goal, State, Amount).
+	count_amount_over_lowest_false(on(Y, Z), Goal, State, BlocksNotInGoal, Amount).
 % is in right spot but has no block above
-count_amount_over_lowest_false(on(X, Y), Goal, _State, 0) :-
+count_amount_over_lowest_false(on(X, Y), Goal, _State, _BlocksNotInGoal, 0) :-
 	member(on(X, Y), Goal), !.
+count_amount_over_lowest_false(on(table, X), _Goal, _State, BlocksNotInGoal, 0) :-
+	member(on(table, X), BlocksNotInGoal), !.
 % is on wrong spot -> start counting
-count_amount_over_lowest_false(on(X, Y), _Goal, State, AmountR) :-
-	count_above(on(X, Y), State, Amount),
+count_amount_over_lowest_false(on(X, Y), _Goal, State, BlocksNotInGoal, AmountR) :-
+	count_above(on(X, Y), State, BlocksNotInGoal, Amount),
 	AmountR is Amount + 1.
 
-count_above(on(_X, Y), State, AmountR) :-
+%count_above(on(_X, Y), State, BlocksNotInGoal, AmountR) :-
+%	member(Y, BlocksNotInGoal), !,
+%	member(on(Y, Z), State), !,
+%	count_above(on(Y, Z), State, BlocksNotInGoal, Amount),
+%	AmountR is Amount + 2.
+count_above(on(_X, Y), State, BlocksNotInGoal, AmountR) :-
 	member(on(Y, Z), State), !,
-	count_above(on(Y, Z), State, Amount),
+	count_above(on(Y, Z), State, BlocksNotInGoal, Amount),
 	AmountR is Amount + 1.
-count_above(_OnStatement, _State, 0).
+count_above(_OnStatement, _State, _BlocksNotInGoal, 0).
 
 
 

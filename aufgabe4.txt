@@ -1,0 +1,45 @@
+
+
+
+Goal Node
+State Member
+Komplexes Beispiel
+A* oder A?
+
+heuristik1: überschätzt potenziell falls blöcke im state sind die nicht im goal enthalten sind.
+heuristik3: überschätzt nie, da alle blöcke über einem falschen block tatsächlich mind. 1 mal bewegt werden müssen.
+
+Hillclimbing ohne Backtracking
+
+-> eingebunden
+
+A* vs gierige Bestensuche
+
+5 blocks:
+	complex:
+		greedy: % 3,471,113 inferences, 0.427 CPU in 0.431 seconds (99% CPU, 8135547 Lips)
+		A*: % 10,631,967 inferences, 1.122 CPU in 1.133 seconds (99% CPU, 9474182 Lips)
+		hillclimbing with backtracking: % % 250,783 inferences, 0.032 CPU in 0.032 seconds (100% CPU, 7809386 Lips) (Lösung 5x so lang)
+		steepest ascend hillclimbing: % 10,181 inferences, 0.002 CPU in 0.043 seconds (4% CPU, 5718786 Lips) -> false. (keine Lösung)
+	simple:
+		greedy: % 1,631,368 inferences, 0.210 CPU in 0.210 seconds (100% CPU, 7773617 Lips)
+		A*: % 5,825,252 inferences, 0.654 CPU in 0.662 seconds (99% CPU, 8900924 Lips)
+		hillclimbing with backtracking: % 131,736 inferences, 0.018 CPU in 0.018 seconds (99% CPU, 7452379 Lips) (Lösung 3,5x so lang)
+		steepest ascend hillclimbing: % 9,965 inferences, 0.001 CPU in 0.001 seconds (100% CPU, 8337419 Lips) -> false. (keine Lösung)
+
+
+6 blocks (einer nicht in der Lösung enthalten):
+	complex:
+		greedy: % 1,276,670,451 inferences, 193.890 CPU in 193.823 seconds (100% CPU, 6584500 Lips) (Lösung knapp nicht optimal)
+		informed: % 708,677,462 inferences, 93.143 CPU in 93.097 seconds (100% CPU, 7608499 Lips)
+		hillclimbing with backtracking: % 2,015,904 inferences, 0.327 CPU in 0.335 seconds (98% CPU, 6163060 Lips) (Lösung 15x mal so lang)
+		steepest ascend hillclimbing: % 10,181 inferences, 0.001 CPU in 0.001 seconds (100% CPU, 9508999 Lips) -> false.
+	simple:
+		greedy: % 537,115,991 inferences, 72.996 CPU in 72.984 seconds (100% CPU, 7358171 Lips) (Lösung knapp nicht optimal)
+		informed: % 509,610,760 inferences, 66.077 CPU in 66.064 seconds (100% CPU, 7712396 Lips)
+		hillclimbing with backtracking: % 2,015,904 inferences, 0.313 CPU in 0.332 seconds (94% CPU, 6433409 Lips) -> false.
+		steppest ascend hillclimbing: % 7,282 inferences, 0.001 CPU in 0.001 seconds (100% CPU, 8098823 Lips) -> false.
+
+iterative Tiefensuche
+
+

@@ -40,6 +40,9 @@ search([[FirstNode|Predecessors]|_],_,[FirstNode|Predecessors]) :-
   goal_node(FirstNode),
   nl,write('SUCCESS'),nl,!.
 
+% eine abstraktion über search die hochzählt und die zahl an search
+% weitergibt. search bricht zählt hoch und bricht ab, wenn die zahl
+% erreicht ist.
 
 search([[FirstNode|Predecessors]|RestPaths],Strategy,Solution) :-
   expand(FirstNode,Children),                                    % Nachfolge-Zust�nde berechnen
@@ -134,20 +137,20 @@ insert_new_paths(breadth,NewPaths,OldPaths,AllPaths):-
 % Informierte Suche
 insert_new_paths(informed,NewPaths,OldPaths,AllPaths):-
   eval_paths(NewPaths),
-  insert_new_paths_informed(NewPaths,OldPaths,AllPaths),
-  write_action(AllPaths),
-  write_state(AllPaths).
+  insert_new_paths_informed(NewPaths,OldPaths,AllPaths).
+  %write_action(AllPaths),
+  %write_state(AllPaths).
 insert_new_paths(hillclimbing_w_backtracking,NewPaths,OldPaths,AllPaths):-
 	eval_paths(NewPaths),
-	insert_new_paths_hillclimbing_w_backtracking(NewPaths,OldPaths,AllPaths),
-	write_action(AllPaths),
-        write_state(AllPaths).
+	insert_new_paths_hillclimbing_w_backtracking(NewPaths,OldPaths,AllPaths).
+	%write_action(AllPaths),
+        %write_state(AllPaths).
 
 insert_new_paths(greedy,NewPaths,OldPaths,AllPaths):-
   eval_paths_greedy(NewPaths),
-  insert_new_paths_informed(NewPaths,OldPaths,AllPaths),
-  write_action(AllPaths),
-  write_state(AllPaths).
+  insert_new_paths_informed(NewPaths,OldPaths,AllPaths).
+  %write_action(AllPaths),
+  %write_state(AllPaths).
 
 
 cheaper(>, [(_Action1, _State1, Value1) | _RestPath1], [(_Action2, _State2, Value2) | _RestPath2]) :-
@@ -163,18 +166,18 @@ cheaper(=, [(_Action1, _State1, Value1) | _RestPath1], [(_Action2, _State2, Valu
 
 insert_new_paths_hillclimbing_w_backtracking(NewPaths,OldPaths,AllPaths):-
 	predsort(cheaper, NewPaths, NewPathsSorted),
-	write("Sorted: "), writeln(NewPathsSorted),
-	append(NewPathsSorted, OldPaths, AllPaths),
-	write_action(AllPaths),
-        write_state(AllPaths).
+	%write("Sorted: "), writeln(NewPathsSorted),
+	append(NewPathsSorted, OldPaths, AllPaths).
+	%write_action(AllPaths),
+        %write_state(AllPaths).
 
 
 
 insert_new_paths(steepest_hillclimbing,NewPaths,OldPaths,AllPaths):-
 	eval_paths(NewPaths),
-	insert_new_paths_steepest_hillclimbing(NewPaths,OldPaths,AllPaths),
-	write_action(AllPaths),
-        write_state(AllPaths).
+	insert_new_paths_steepest_hillclimbing(NewPaths,OldPaths,AllPaths).
+	%write_action(AllPaths),
+        %write_state(AllPaths).
 
 
 
