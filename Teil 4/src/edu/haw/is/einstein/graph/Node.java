@@ -117,7 +117,7 @@ public class Node<D> implements Comparable<Node<D>> {
 		return 1;
 	}
 
-	public void setDomain(final ArrayList<D> domain) {
+	public void setDomain(final List<D> domain) {
 		this.domain = domain;
 	}
 

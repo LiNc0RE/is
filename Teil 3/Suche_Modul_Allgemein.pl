@@ -182,9 +182,10 @@ insert_new_paths(steepest_hillclimbing,NewPaths,OldPaths,AllPaths):-
 
 
 
-insert_new_paths_steepest_hillclimbing(NewPaths,OldPaths,AllPaths) :-
+insert_new_paths_steepest_hillclimbing(NewPaths,_OldPaths,Min) :-
 	min_list_heuristic(NewPaths, Min),
-	AllPaths = [Min	| OldPaths].
+	Min =  [(_Action, _State, Value), (_ParentAction, _ParentState, ParentValue) | _RestPath], !,
+	Value < ParentValue.
 
 min_list_heuristic([State | RestPath], Min) :-
 	min_list_heuristic_(State, RestPath, Min).

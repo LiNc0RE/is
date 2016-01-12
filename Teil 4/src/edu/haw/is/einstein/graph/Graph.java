@@ -1,5 +1,7 @@
 package edu.haw.is.einstein.graph;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -10,18 +12,18 @@ import java.util.stream.Collectors;
 
 public class Graph<D> {
 
-	private final Queue<Node<D>> unassignedNodes;
+	private final List<Node<D>> unassignedNodes;
 	private final Set<Node<D>> assignedNodes;
 	private final Set<DirectionalEdge<D>> edges;
 
 	public Graph() {
 		// most constrained variable ordering
-		this.unassignedNodes = new PriorityQueue<>();
+		this.unassignedNodes = new ArrayList<>();
 		this.assignedNodes = new HashSet<>();
 		this.edges = new HashSet<>();
 	}
 	
-	private Graph(final Queue<Node<D>> unassignedNodes, final Set<Node<D>> assignedNodes, final Set<DirectionalEdge<D>> edges) {
+	private Graph(final List<Node<D>> unassignedNodes, final Set<Node<D>> assignedNodes, final Set<DirectionalEdge<D>> edges) {
 		this.unassignedNodes = unassignedNodes;
 		this.assignedNodes = assignedNodes;
 		this.edges = edges;
@@ -29,7 +31,7 @@ public class Graph<D> {
 	
 	public Graph<D> deepCopy() {
 		// edges never change, only nodes need deep copy
-		final Queue<Node<D>> unassignedNodesCopy = this.unassignedNodes.stream().map(node -> new Node<D>(node)).collect(Collectors.toCollection(PriorityQueue::new));
+		final List<Node<D>> unassignedNodesCopy = this.unassignedNodes.stream().map(node -> new Node<D>(node)).collect(Collectors.toCollection(ArrayList::new));
 		final Set<Node<D>> assignedNodesCopy = this.assignedNodes.stream().map(node -> new Node<D>(node)).collect(Collectors.toCollection(HashSet::new));
 		return new Graph<D>(unassignedNodesCopy, assignedNodesCopy, this.edges);
 	}
@@ -63,7 +65,7 @@ public class Graph<D> {
 		return this.unassignedNodes.stream().filter(node -> node.getName().equals(name)).findFirst();
 	}
 	
-	public Queue<Node<D>> getUnassignedNodes() {
+	public List<Node<D>> getUnassignedNodes() {
 		return this.unassignedNodes;
 	}
 
@@ -76,10 +78,11 @@ public class Graph<D> {
 	}
 
 	public void assign(final Node<D> currentNode, final D possibleSolution) {
-		System.err.println("assign");
-		this.unassignedNodes.remove(currentNode);
+//		System.err.println("assign");
+//		this.unassignedNodes.remove(currentNode);
+		currentNode.setDomain(new ArrayList<>(Arrays.asList(possibleSolution)));
 		currentNode.setSolution(possibleSolution);
-		this.assignedNodes.add(currentNode);
+//		this.assignedNodes.add(currentNode);
 	}
 
 }

@@ -8,17 +8,16 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
 import edu.haw.is.einstein.graph.DirectionalEdge;
 import edu.haw.is.einstein.graph.Graph;
 import edu.haw.is.einstein.graph.Node;
 
 public class CSP<D> {
 	
-	private final Graph<D> graph;
+	private Graph<D> graph;
 	private final BinaryConstraintFactory<D> constraintFactory;
 	// FIXME: ugly hack, scoping and stuff...
-	private boolean removedSomething;
-	private boolean validYExists;
 	private Set<Node<D>> solution;
 	
 	public CSP(final BinaryConstraintFactory<D> constraintFactory) {
@@ -27,8 +26,14 @@ public class CSP<D> {
 		this.graph = new Graph<>();
 	}
 	
-	private boolean ac3(final Graph<D> currentGraph) {
-		final Queue<DirectionalEdge<D>> queue = new LinkedList<>(currentGraph.getEdges());
+	private boolean ac3La(final Graph<D> currentGraph, int currentNodeIndex) {
+		Set<DirectionalEdge<D>> edges = currentGraph.getEdges();
+		Queue<DirectionalEdge<D>> queue = edges.stream().filter(edge -> {
+			int indexOfFrom = currentGraph.getUnassignedNodes().indexOf(edge.getFromNode());
+			int indexOfTo = currentGraph.getUnassignedNodes().indexOf(edge.getToNode());
+			return (indexOfFrom > currentNodeIndex) && (indexOfTo == currentNodeIndex);
+		}).collect(Collectors.toCollection(LinkedList::new));
+//		DirectionalEdge<D>[] copyOfRange = (DirectionalEdge<D>[]) Arrays.copyOfRange(edges.toArray(), currentNodeIndex, edges.size() - 1);
 		while (!queue.isEmpty()) {
 			final DirectionalEdge<D> currentArc = queue.poll();
 			System.out.println("before");
@@ -43,96 +48,175 @@ public class CSP<D> {
 					System.out.println("domain size of " + currentArc.getFromNode().getName() + " hit zero.");
 					return false;
 				} else {
-					this.addArcsPointingToX(queue, currentArc);					
+					this.addArcsPointingToX(queue, currentArc, currentNodeIndex);					
 				}
 			}
 		}
 		return true;
 	}
+	
+//	private boolean ac3(final Graph<D> currentGraph) {
+//		final Queue<DirectionalEdge<D>> queue = new LinkedList<>(currentGraph.getEdges());
+//		while (!queue.isEmpty()) {
+//			final DirectionalEdge<D> currentArc = queue.poll();
+////			System.out.println("before");
+////			System.out.println(currentArc);
+//			if (this.removeInconsistentValues(currentArc)) {
+////				System.out.println("after");
+////				System.out.println(currentArc);
+////				System.out.println(currentArc.getFromNode().getEdgesGoingOutFromNode());
+////				System.out.println(currentArc.getFromNode().getEdgesPointingToNode());
+//				// check in backtracking search?
+//				if (currentArc.getFromNode().getDomain().size() == 0) {
+//					System.out.println("domain size of " + currentArc.getFromNode().getName() + " hit zero.");
+//					return false;
+//				} else {
+//					this.addArcsPointingToX(queue, currentArc);					
+//				}
+//			}
+//		}
+//		return true;
+//	}
 
-	private void addArcsPointingToX(final Queue<DirectionalEdge<D>> queue, final DirectionalEdge<D> currentArc) {
+	private void addArcsPointingToX(final Queue<DirectionalEdge<D>> queue, final DirectionalEdge<D> currentArc, int currentNodeIndex) {
 		final Set<DirectionalEdge<D>> edgesPointingToChangedNode = currentArc.getFromNode().getEdgesPointingToNode();
-		final Set<DirectionalEdge<D>> edgesPointingToChangedNodeWithoutY = edgesPointingToChangedNode.stream().filter(edge -> !edge.getFromNode().equals(currentArc.getToNode())).collect(Collectors.toCollection(HashSet::new));
+		final Set<DirectionalEdge<D>> edgesPointingToChangedNodeWithoutY = edgesPointingToChangedNode.stream()
+				.filter(edge -> (!(edge.getFromNode().equals(currentArc.getToNode()) || edge.getToNode().equals(edge.getFromNode())) || graph.getUnassignedNodes().indexOf(edge.getFromNode()) < currentNodeIndex))
+				.collect(Collectors.toCollection(HashSet::new));
 		queue.addAll(edgesPointingToChangedNodeWithoutY);
 	}
 
 	private boolean removeInconsistentValues(final DirectionalEdge<D> currentArc) {
-		this.removedSomething = false;
+		boolean removedSomething = false;
 		final List<D> domainOfX = new ArrayList<>(currentArc.getFromNode().getDomain());
-		domainOfX.forEach(possibleX -> {
-			this.validYExists = false;
-			this.checkIfThereExistsYThatFullfilsConstraint(currentArc, possibleX);
-			if (!this.validYExists) {
+		for (D possibleX : domainOfX) {
+			if (!this.checkIfThereExistsYThatFullfilsConstraint(currentArc, possibleX)) {
 				currentArc.getFromNode().getDomain().remove(possibleX);
-				this.removedSomething = true;
+				removedSomething = true;
 			}
-		});
-		return this.removedSomething;
+		}
+		return removedSomething;
 	}
 
-	private void checkIfThereExistsYThatFullfilsConstraint(final DirectionalEdge<D> currentArc, final D possibleX) {
-		currentArc.getToNode().getDomain().forEach(possibleY -> {
+	private boolean checkIfThereExistsYThatFullfilsConstraint(final DirectionalEdge<D> currentArc, final D possibleX) {
+		for (D possibleY : currentArc.getToNode().getDomain()) {
 			if (this.constraintFactory.checkConstraint(currentArc.getConstraintName(), possibleX, possibleY)) {
-				this.validYExists = true;
+				return true;
 			}
-		});
+		}
+		return false;
 	}
 	
-	public Set<Node<D>> solve() {
+	public List<Node<D>> solve() {
 		System.out.println(this.graph.getEdges());
 		this.enforceUnaryConstraint();
 		System.out.println(this.graph.getEdges());
-		if (this.ac3(this.graph)) {
-			System.err.println("after first ac3");
-			return this.backtrackingSearch(this.graph);
+		if (solveRecursively(0)) {
+			return graph.getUnassignedNodes();
 		} else {
-			System.out.println("initial ac3 failed");
 			return null;
 		}
 		
 	}
 	
+
+	
+	private boolean solveRecursively(int currentNodeIndex) {
+		Node<D> currentNode = this.graph.getUnassignedNodes().get(currentNodeIndex);
+		if (currentNode.getDomain().size() <= 0){
+			return false;
+		}
+		Graph<D> copyState = this.graph.deepCopy();
+		D possibleSolution = currentNode.getDomain().get(0);
+		currentNode.getDomain().remove(0);
+		List<D> domainBackup = new ArrayList<>(currentNode.getDomain());
+		this.graph.assign(currentNode, possibleSolution);
+		if (ac3La(this.graph, currentNodeIndex)) {
+			if (currentNodeIndex == this.graph.getUnassignedNodes().size() - 1) {
+				System.err.println(this.graph.getUnassignedNodes());
+				return true;
+			}
+			System.out.println("rec");
+			if (solveRecursively(currentNodeIndex + 1)) {
+				return true;
+			}
+		}
+		this.graph = copyState;
+		this.graph.getUnassignedNodes().get(currentNodeIndex).setDomain(domainBackup);
+		return solveRecursively(currentNodeIndex);
+	}
+	
+//	private boolean solveRecursively(Graph<D> graph, int currentNodeIndex) {
+//		Node<D> currentNode = this.graph.getUnassignedNodes().get(currentNodeIndex);
+//		if (currentNode.getDomain().size() <= 0){
+//			return false;
+//		}
+//		List<D> domainCopy = new ArrayList<>(currentNode.getDomain());
+//		for (D possibleSolution : domainCopy) {
+//			Graph<D> newState = graph.deepCopy();
+//			Node<D> currentNodeNewState = newState.getUnassignedNodes().get(currentNodeIndex);
+//			newState.assign(currentNodeNewState, possibleSolution);
+//			if (ac3La(newState, currentNodeIndex)) {
+//				if (currentNodeIndex == graph.getUnassignedNodes().size() - 1) {
+//					System.err.println(newState.getUnassignedNodes());
+//					this.graph = newState;
+//					return true;
+//				}
+//				System.out.println("rec");
+//				if (solveRecursively(newState, currentNodeIndex + 1)) {
+//					return true;
+//				}
+//			}
+//		}
+//		return false;
+//	}
+
 	private void enforceUnaryConstraint() {
 		final List<DirectionalEdge<D>> unaryConstraints = this.graph.getEdges().stream().filter(edge -> {
 			return edge.getFromNode().equals(edge.getToNode());
 		}).collect(Collectors.toCollection(ArrayList::new));
 		System.err.println(unaryConstraints.size());
-		unaryConstraints.forEach(edge -> {
-			edge
-				.getFromNode()
-				.getDomain()
-				.removeIf(possibleSolution -> 
-					!this.constraintFactory.checkConstraint(edge.getConstraintName(), possibleSolution, possibleSolution));
-			if (edge.getFromNode().getDomain().size() == 1) {
+		for (DirectionalEdge<D> edge : unaryConstraints) {
+			List<D> domain = edge.getFromNode().getDomain();
+			List<D> newDomain = new ArrayList<>(domain.size());
+			for (D possibleSolution : domain) {
+				if (this.constraintFactory.checkConstraint(edge.getConstraintName(), possibleSolution, possibleSolution)) {
+					newDomain.add(possibleSolution);
+				}
+			}
+			edge.getFromNode().setDomain(newDomain);
+			
+			if (newDomain.size() == 1) {
 				// wtf?
 				System.err.println(this.graph.getEdges());
 				System.err.println("found solution through unary constraint");
-				this.graph.assign(edge.getFromNode(), edge.getFromNode().getDomain().get(0));
-			}
-		});
-	}
-
-	private Set<Node<D>> backtrackingSearch(final Graph<D> graph) {
-		this.recursiveBacktrackingSearch(graph);
-		return this.solution;
-	}
-
-	private void recursiveBacktrackingSearch(final Graph<D> graph) {
-		if (graph.getUnassignedNodes().size() <= 0) {
-			// SUCCESS
-			this.solution = graph.getAssignedNodes();
-		}
-		final Node<D> currentNode = graph.getUnassignedNodes().poll();
-		if (!(currentNode.getDomain().size() <= 0)) {
-			for (final D possibleSolution : currentNode.getDomain()) {
-				final Graph<D> currentGraph = graph.deepCopy();
-				currentGraph.assign(currentNode, possibleSolution);
-				if (this.ac3(currentGraph)) {
-					this.recursiveBacktrackingSearch(currentGraph);
-				}
+				this.graph.assign(edge.getFromNode(), newDomain.get(0));
 			}
 		}
 	}
+
+//	private Set<Node<D>> backtrackingSearch(final Graph<D> graph) {
+//		this.recursiveBacktrackingSearch(graph);
+//		return this.solution;
+//	}
+//
+//	private void recursiveBacktrackingSearch(final Graph<D> graph) {
+//		if (graph.getUnassignedNodes().size() <= 0) {
+//			// SUCCESS
+//			this.solution = graph.getAssignedNodes();
+//			return;
+//		}
+//		final Node<D> currentNode = graph.getUnassignedNodes().poll();
+//		if (!(currentNode.getDomain().size() <= 0)) {
+//			for (final D possibleSolution : currentNode.getDomain()) {
+//				final Graph<D> currentGraph = graph.deepCopy();
+//				currentGraph.assign(currentNode, possibleSolution);
+//				if (this.ac3(currentGraph)) {
+//					this.recursiveBacktrackingSearch(currentGraph);
+//				}
+//			}
+//		}
+//	}
 	
 //	private Set<Node<D>> backtrackingSearch(final Graph<D> graph) {
 //		return this.recursiveBacktrackingSearch(graph);

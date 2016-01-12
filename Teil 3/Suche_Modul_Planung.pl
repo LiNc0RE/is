@@ -199,8 +199,9 @@ count_amount_over_lowest_false(on(X, Y), Goal, State, BlocksNotInGoal, Amount) :
 % is in right spot but has no block above
 count_amount_over_lowest_false(on(X, Y), Goal, _State, _BlocksNotInGoal, 0) :-
 	member(on(X, Y), Goal), !.
-count_amount_over_lowest_false(on(table, X), _Goal, _State, BlocksNotInGoal, 0) :-
-	member(on(table, X), BlocksNotInGoal), !.
+count_amount_over_lowest_false(on(table, X), _Goal, State, BlocksNotInGoal, 0) :-
+	member(on(table, X), BlocksNotInGoal), !,
+	not(member(on(X, _Y), State)), !.
 % is on wrong spot -> start counting
 count_amount_over_lowest_false(on(X, Y), _Goal, State, BlocksNotInGoal, AmountR) :-
 	count_above(on(X, Y), State, BlocksNotInGoal, Amount),

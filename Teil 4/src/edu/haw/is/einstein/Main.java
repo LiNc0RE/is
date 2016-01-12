@@ -6,86 +6,124 @@ import java.util.List;
 
 public class Main {
 	
+	// constraints
+	private static final String RECHTSVON = "rechtsvon";
+	private static final String LINKSVON = "linksvon";
+	private static final String NACHBARN = "nachbarn";
+	private static final String UNGLEICH = "ungleich";
+	private static final String GLEICH = "gleich";
+	private static final String ERSTESHAUS = "ersteshaus";
+	private static final String MITTELHAUS = "mittelhaus";
+	// Variablen
+	private static final String ROTHMANNS = "rothmanns";
+	private static final String WINFIELD = "winfield";
+	private static final String MARLBORO = "marlboro";
+	private static final String DUNHILL = "dunhill";
+	private static final String PALLMALL = "pallmall";
+	private static final String WASSER = "wasser";
+	private static final String BIER = "bier";
+	private static final String MILCH = "milch";
+	private static final String KAFFEE = "kaffee";
+	private static final String TEE = "tee";
+	private static final String FISCH = "fisch";
+	private static final String PFERD = "pferd";
+	private static final String KATZE = "katze";
+	private static final String VOGEL = "vogel";
+	private static final String HUND = "hund";
+	private static final String BLAU = "blau";
+	private static final String WEISS = "weiss";
+	private static final String GELB = "gelb";
+	private static final String GRUEN = "gruen";
+	private static final String ROT = "rot";
+	private static final String DEUTSCHER = "deutscher";
+	private static final String NORWEGER = "norweger";
+	private static final String DAENE = "daene";
+	private static final String SCHWEDE = "schwede";
+	private static final String BRITE = "brite";
+
 	public static void main(final String[] args) {
-		final List<Integer> domain = new ArrayList<>(Arrays.asList(0, 1, 2, 3, 4));
 		final BinaryConstraintFactory<Integer> constraintFactory = BinaryConstraintFactory.init();
 		
 		// unary
-		constraintFactory.addCommand("mittelhaus", (x, y) -> x == 2);
-		constraintFactory.addCommand("ersteshaus", (x, y) -> x == 0);
+		constraintFactory.addCommand(MITTELHAUS, (x, y) -> x == 2);
+		constraintFactory.addCommand(ERSTESHAUS, (x, y) -> x == 0);
 		
 		// binary
-		constraintFactory.addCommand("gleich", (x, y) -> x == y);
-		constraintFactory.addCommand("ungleich", (x, y) -> x != y);
-		constraintFactory.addCommand("nachbarn", (x, y) -> Math.abs(x - y) == 1);
-		constraintFactory.addCommand("linksvon", (x, y) -> x < y);
-		constraintFactory.addCommand("rechtsvon", (x, y) -> x > y);
+		constraintFactory.addCommand(GLEICH, (x, y) -> x == y);
+		constraintFactory.addCommand(UNGLEICH, (x, y) -> x != y);
+		constraintFactory.addCommand(NACHBARN, (x, y) -> Math.abs(x - y) == 1);
+		constraintFactory.addCommand(LINKSVON, (x, y) -> x < y);
+		constraintFactory.addCommand(RECHTSVON, (x, y) -> x > y);
 		
 		final CSP<Integer> csp = new CSP<>(constraintFactory);
 
-		csp.addVariable("brite", domain);
-		csp.addVariable("schwede", domain);
-		csp.addVariable("daene", domain);
-		csp.addVariable("norweger", domain);
-		csp.addVariable("deutscher", domain);
+		csp.addVariable(BRITE, createDomain());
+		csp.addVariable(SCHWEDE, createDomain());
+		csp.addVariable(DAENE, createDomain());
+		csp.addVariable(NORWEGER, createDomain());
+		csp.addVariable(DEUTSCHER, createDomain());
 		
-		csp.addVariable("rot", domain);
-		csp.addVariable("gruen", domain);
-		csp.addVariable("gelb", domain);
-		csp.addVariable("weiss", domain);
-		csp.addVariable("blau", domain);
+		csp.addVariable(ROT, createDomain());
+		csp.addVariable(GRUEN, createDomain());
+		csp.addVariable(GELB, createDomain());
+		csp.addVariable(WEISS, createDomain());
+		csp.addVariable(BLAU, createDomain());
 		
-		csp.addVariable("hund", domain);
-		csp.addVariable("vogel", domain);
-		csp.addVariable("katze", domain);
-		csp.addVariable("pferd", domain);
-		csp.addVariable("fisch", domain);
+		csp.addVariable(HUND, createDomain());
+		csp.addVariable(VOGEL, createDomain());
+		csp.addVariable(KATZE, createDomain());
+		csp.addVariable(PFERD, createDomain());
+		csp.addVariable(FISCH, createDomain());
 		
-		csp.addVariable("tee", domain);
-		csp.addVariable("kaffee", domain);
-		csp.addVariable("milch", domain);
-		csp.addVariable("bier", domain);
-		csp.addVariable("wasser", domain);
+		csp.addVariable(TEE, createDomain());
+		csp.addVariable(KAFFEE, createDomain());
+		csp.addVariable(MILCH, createDomain());
+		csp.addVariable(BIER, createDomain());
+		csp.addVariable(WASSER, createDomain());
 		
-		csp.addVariable("pallmall", domain);
-		csp.addVariable("dunhill", domain);
-		csp.addVariable("marlboro", domain);
-		csp.addVariable("winfield", domain);
-		csp.addVariable("rothmanns", domain);
+		csp.addVariable(PALLMALL, createDomain());
+		csp.addVariable(DUNHILL, createDomain());
+		csp.addVariable(MARLBORO, createDomain());
+		csp.addVariable(WINFIELD, createDomain());
+		csp.addVariable(ROTHMANNS, createDomain());
 		
 		// unary
-		csp.addBidirectionalConstraint("milch", "milch", "mittelhaus");        // 7
-		csp.addBidirectionalConstraint("norweger", "norweger", "ersteshaus");  // 9
+		csp.addBidirectionalConstraint(MILCH, MILCH, MITTELHAUS);        // 7
+		csp.addBidirectionalConstraint(NORWEGER, NORWEGER, ERSTESHAUS);  // 9
 		
 		// binary
-		csp.addBidirectionalConstraint("brite", "rot", "gleich");              // 1
-		csp.addBidirectionalConstraint("schwede", "hund", "gleich");           // 2
-		csp.addBidirectionalConstraint("daene", "tee", "gleich");              // 3
-		csp.addConstraint("gruen", "weiss", "linksvon");                       // 4.1
-		csp.addConstraint("weiss", "gruen", "rechtsvon");                      // 4.2
-		csp.addBidirectionalConstraint("gruen", "kaffee", "gleich");           // 5
-		csp.addBidirectionalConstraint("pallmall", "vogel", "gleich");         // 6
-		csp.addBidirectionalConstraint("gelb", "dunnhill", "gleich");          // 8
-		csp.addBidirectionalConstraint("winfield", "bier", "gleich");          // 12
-		csp.addBidirectionalConstraint("deutscher", "rothmanns", "gleich");    // 14
-		csp.addBidirectionalConstraint("marlboro", "katze", "nachbarn");       // 10
-		csp.addBidirectionalConstraint("pfed", "dunhill", "nachbarn");         // 11
-		csp.addBidirectionalConstraint("norweger", "blau", "nachbarn");        // 13
-		csp.addBidirectionalConstraint("marlboro", "wasser", "nachbarn");      // 15
+		csp.addBidirectionalConstraint(BRITE, ROT, GLEICH);              // 1
+		csp.addBidirectionalConstraint(SCHWEDE, HUND, GLEICH);           // 2
+		csp.addBidirectionalConstraint(DAENE, TEE, GLEICH);              // 3
+		csp.addConstraint(GRUEN, WEISS, LINKSVON);                       // 4.1
+		csp.addConstraint(WEISS, GRUEN, RECHTSVON);                      // 4.2
+		csp.addBidirectionalConstraint(GRUEN, KAFFEE, GLEICH);           // 5
+		csp.addBidirectionalConstraint(PALLMALL, VOGEL, GLEICH);         // 6
+		csp.addBidirectionalConstraint(GELB, DUNHILL, GLEICH);          // 8
+		csp.addBidirectionalConstraint(WINFIELD, BIER, GLEICH);          // 12
+		csp.addBidirectionalConstraint(DEUTSCHER, ROTHMANNS, GLEICH);    // 14
+		csp.addBidirectionalConstraint(MARLBORO, KATZE, NACHBARN);       // 10
+		csp.addBidirectionalConstraint(PFERD, DUNHILL, NACHBARN);         // 11
+		csp.addBidirectionalConstraint(NORWEGER, BLAU, NACHBARN);        // 13
+		csp.addBidirectionalConstraint(MARLBORO, WASSER, NACHBARN);      // 15
 		
-		final List<String> nationen = Arrays.asList("brite", "schwede", "daene", "norweger", "deutscher");
-		final List<String> farben = Arrays.asList("rot", "gruen", "gelb", "weiss", "blau");
-		final List<String> tiere = Arrays.asList("hund", "vogel", "katze", "pferd", "fisch");
-		final List<String> getraenke = Arrays.asList("tee", "kaffee", "milch", "bier", "wasser");
-		final List<String> zigaretten = Arrays.asList("pallmall", "dunhill", "marlboro", "winfield", "rothmanns");
+		final List<String> nationen = Arrays.asList(BRITE, SCHWEDE, DAENE, NORWEGER, DEUTSCHER);
+		final List<String> farben = Arrays.asList(ROT, GRUEN, GELB, WEISS, BLAU);
+		final List<String> tiere = Arrays.asList(HUND, VOGEL, KATZE, PFERD, FISCH);
+		final List<String> getraenke = Arrays.asList(TEE, KAFFEE, MILCH, BIER, WASSER);
+		final List<String> zigaretten = Arrays.asList(PALLMALL, DUNHILL, MARLBORO, WINFIELD, ROTHMANNS);
 		
-		addConstraintFor(csp, nationen, "ungleich");
-		addConstraintFor(csp, farben, "ungleich");
-		addConstraintFor(csp, tiere, "ungleich");
-		addConstraintFor(csp, getraenke, "ungleich");
-		addConstraintFor(csp, zigaretten, "ungleich");
+		addConstraintFor(csp, nationen, UNGLEICH);
+		addConstraintFor(csp, farben, UNGLEICH);
+		addConstraintFor(csp, tiere, UNGLEICH);
+		addConstraintFor(csp, getraenke, UNGLEICH);
+		addConstraintFor(csp, zigaretten, UNGLEICH);
 		
 		System.out.println(csp.solve());
+	}
+
+	private static List<Integer> createDomain() {
+		return new ArrayList<>(Arrays.asList(0, 1, 2, 3, 4));
 	}
 
 	private static void addConstraintFor(final CSP<Integer> csp, final List<String> nodes, final String constraintName) {
