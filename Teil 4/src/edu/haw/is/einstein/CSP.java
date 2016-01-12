@@ -34,6 +34,8 @@ public class CSP<D> {
 			return (indexOfFrom > currentNodeIndex) && (indexOfTo == currentNodeIndex);
 		}).collect(Collectors.toCollection(LinkedList::new));
 //		DirectionalEdge<D>[] copyOfRange = (DirectionalEdge<D>[]) Arrays.copyOfRange(edges.toArray(), currentNodeIndex, edges.size() - 1);
+		System.out.println(queue);
+		System.out.println(currentGraph.getUnassignedNodes());
 		while (!queue.isEmpty()) {
 			final DirectionalEdge<D> currentArc = queue.poll();
 			System.out.println("before");
@@ -41,8 +43,9 @@ public class CSP<D> {
 			if (this.removeInconsistentValues(currentArc)) {
 				System.out.println("after");
 				System.out.println(currentArc);
-				System.out.println(currentArc.getFromNode().getEdgesGoingOutFromNode());
-				System.out.println(currentArc.getFromNode().getEdgesPointingToNode());
+//				System.out.println(currentArc.getFromNode().getEdgesGoingOutFromNode());
+//				System.out.println(currentArc.getFromNode().getEdgesPointingToNode());
+				System.out.println(this.graph.getUnassignedNodes());
 				// check in backtracking search?
 				if (currentArc.getFromNode().getDomain().size() == 0) {
 					System.out.println("domain size of " + currentArc.getFromNode().getName() + " hit zero.");
@@ -55,28 +58,32 @@ public class CSP<D> {
 		return true;
 	}
 	
-//	private boolean ac3(final Graph<D> currentGraph) {
-//		final Queue<DirectionalEdge<D>> queue = new LinkedList<>(currentGraph.getEdges());
-//		while (!queue.isEmpty()) {
-//			final DirectionalEdge<D> currentArc = queue.poll();
-////			System.out.println("before");
-////			System.out.println(currentArc);
-//			if (this.removeInconsistentValues(currentArc)) {
-////				System.out.println("after");
-////				System.out.println(currentArc);
-////				System.out.println(currentArc.getFromNode().getEdgesGoingOutFromNode());
-////				System.out.println(currentArc.getFromNode().getEdgesPointingToNode());
-//				// check in backtracking search?
-//				if (currentArc.getFromNode().getDomain().size() == 0) {
-//					System.out.println("domain size of " + currentArc.getFromNode().getName() + " hit zero.");
-//					return false;
-//				} else {
-//					this.addArcsPointingToX(queue, currentArc);					
-//				}
-//			}
-//		}
-//		return true;
-//	}
+	private boolean ac3(final Graph<D> currentGraph) {
+		final Queue<DirectionalEdge<D>> queue = new LinkedList<>(currentGraph.getEdges());
+		while (!queue.isEmpty()) {
+			final DirectionalEdge<D> currentArc = queue.poll();
+//			System.out.println("before");
+//			System.out.println(currentArc);
+			if (this.removeInconsistentValues(currentArc)) {
+//				System.out.println("after");
+//				System.out.println(currentArc);
+//				System.out.println(currentArc.getFromNode().getEdgesGoingOutFromNode());
+//				System.out.println(currentArc.getFromNode().getEdgesPointingToNode());
+				// check in backtracking search?
+				if (currentArc.getFromNode().getDomain().size() == 0) {
+					System.out.println("domain size of " + currentArc.getFromNode().getName() + " hit zero.");
+					return false;
+				} else {
+					Set<DirectionalEdge<D>> edgesPointingToChangedNode = currentArc.getFromNode().getEdgesPointingToNode();
+					Set<DirectionalEdge<D>> edgesPointingToChangedNodeWithoutY = edgesPointingToChangedNode.stream()
+							.filter(edge -> (!(edge.getFromNode().equals(currentArc.getToNode()) || edge.getToNode().equals(edge.getFromNode()))))
+							.collect(Collectors.toCollection(HashSet::new));
+					queue.addAll(edgesPointingToChangedNodeWithoutY);					
+				}
+			}
+		}
+		return true;
+	}
 
 	private void addArcsPointingToX(final Queue<DirectionalEdge<D>> queue, final DirectionalEdge<D> currentArc, int currentNodeIndex) {
 		final Set<DirectionalEdge<D>> edgesPointingToChangedNode = currentArc.getFromNode().getEdgesPointingToNode();
@@ -110,7 +117,9 @@ public class CSP<D> {
 	public List<Node<D>> solve() {
 		System.out.println(this.graph.getEdges());
 		this.enforceUnaryConstraint();
-		System.out.println(this.graph.getEdges());
+		System.out.println(this.graph.getUnassignedNodes());
+//		System.out.println(this.graph.getEdges());
+		this.ac3(this.graph);
 		if (solveRecursively(0)) {
 			return graph.getUnassignedNodes();
 		} else {
@@ -131,6 +140,8 @@ public class CSP<D> {
 		currentNode.getDomain().remove(0);
 		List<D> domainBackup = new ArrayList<>(currentNode.getDomain());
 		this.graph.assign(currentNode, possibleSolution);
+		System.out.println("Starte AC3La mit Node: "+currentNode);
+		
 		if (ac3La(this.graph, currentNodeIndex)) {
 			if (currentNodeIndex == this.graph.getUnassignedNodes().size() - 1) {
 				System.err.println(this.graph.getUnassignedNodes());
@@ -141,6 +152,7 @@ public class CSP<D> {
 				return true;
 			}
 		}
+		System.out.println("ac3La Schlug fehl mit Node: "+currentNode);
 		this.graph = copyState;
 		this.graph.getUnassignedNodes().get(currentNodeIndex).setDomain(domainBackup);
 		return solveRecursively(currentNodeIndex);

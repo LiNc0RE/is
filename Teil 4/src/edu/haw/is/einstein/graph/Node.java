@@ -25,9 +25,10 @@ public class Node<D> implements Comparable<Node<D>> {
 	
 	public Node(final Node<D> node) {
 		this.name = node.name;
-		this.domain = node.domain;
+		this.domain = new ArrayList<>(node.domain);
 		this.solution = node.solution;
-		this.edgesPointingToNode = node.edgesPointingToNode;
+		this.edgesPointingToNode = node.edgesPointingToNode; //kann Problematisch werden, da alte Edges verwendet werden bei deepcopy. 
+															//(In unserem Programm kein Problem, da wir edgesPointingToNode nur am Anfang einmal verwenden und dann nie wieder.)
 		this.edgesGoingOutFromNode = node.edgesGoingOutFromNode;
 	}
 

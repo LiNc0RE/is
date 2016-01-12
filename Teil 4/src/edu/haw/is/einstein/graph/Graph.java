@@ -33,7 +33,14 @@ public class Graph<D> {
 		// edges never change, only nodes need deep copy
 		final List<Node<D>> unassignedNodesCopy = this.unassignedNodes.stream().map(node -> new Node<D>(node)).collect(Collectors.toCollection(ArrayList::new));
 		final Set<Node<D>> assignedNodesCopy = this.assignedNodes.stream().map(node -> new Node<D>(node)).collect(Collectors.toCollection(HashSet::new));
-		return new Graph<D>(unassignedNodesCopy, assignedNodesCopy, this.edges);
+		final Set<DirectionalEdge<D>> edgesCopy = new HashSet<DirectionalEdge<D>>();
+		for(DirectionalEdge<D>edge : edges){
+			edgesCopy.add(new DirectionalEdge<D>(
+							unassignedNodesCopy.get(unassignedNodesCopy.indexOf(edge.getFromNode())),
+							unassignedNodesCopy.get(unassignedNodesCopy.indexOf(edge.getToNode())), 
+							edge.getConstraintName()));
+		}
+		return new Graph<D>(unassignedNodesCopy, assignedNodesCopy, edgesCopy);
 	}
 	
 	public void addNode(final String name, final List<D> domain) {
