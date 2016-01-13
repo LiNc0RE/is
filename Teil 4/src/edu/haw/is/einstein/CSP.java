@@ -1,6 +1,7 @@
 package edu.haw.is.einstein;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.List;
@@ -13,7 +14,7 @@ import edu.haw.is.einstein.graph.DirectionalEdge;
 import edu.haw.is.einstein.graph.Graph;
 import edu.haw.is.einstein.graph.Node;
 
-public class CSP<D> {
+public class CSP<D extends Comparable<D>> {
 	
 	private Graph<D> graph;
 	private final BinaryConstraintFactory<D> constraintFactory;
@@ -34,21 +35,21 @@ public class CSP<D> {
 			return (indexOfFrom > currentNodeIndex) && (indexOfTo == currentNodeIndex);
 		}).collect(Collectors.toCollection(LinkedList::new));
 //		DirectionalEdge<D>[] copyOfRange = (DirectionalEdge<D>[]) Arrays.copyOfRange(edges.toArray(), currentNodeIndex, edges.size() - 1);
-		System.out.println(queue);
-		System.out.println(currentGraph.getUnassignedNodes());
+//		System.out.println(queue);
+//		System.out.println(currentGraph.getUnassignedNodes());
 		while (!queue.isEmpty()) {
 			final DirectionalEdge<D> currentArc = queue.poll();
-			System.out.println("before");
-			System.out.println(currentArc);
+//			System.out.println("before");
+//			System.out.println(currentArc);
 			if (this.removeInconsistentValues(currentArc)) {
-				System.out.println("after");
+//				System.out.println("after");
 				System.out.println(currentArc);
 //				System.out.println(currentArc.getFromNode().getEdgesGoingOutFromNode());
 //				System.out.println(currentArc.getFromNode().getEdgesPointingToNode());
-				System.out.println(this.graph.getUnassignedNodes());
+//				System.out.println(this.graph.getUnassignedNodes());
 				// check in backtracking search?
 				if (currentArc.getFromNode().getDomain().size() == 0) {
-					System.out.println("domain size of " + currentArc.getFromNode().getName() + " hit zero.");
+//					System.out.println("domain size of " + currentArc.getFromNode().getName() + " hit zero.");
 					return false;
 				} else {
 					this.addArcsPointingToX(queue, currentArc, currentNodeIndex);					

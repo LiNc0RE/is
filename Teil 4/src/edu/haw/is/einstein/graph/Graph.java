@@ -10,7 +10,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Graph<D> {
+public class Graph<D extends Comparable<D>> {
 
 	private final List<Node<D>> unassignedNodes;
 	private final Set<Node<D>> assignedNodes;
@@ -34,7 +34,7 @@ public class Graph<D> {
 		final List<Node<D>> unassignedNodesCopy = this.unassignedNodes.stream().map(node -> new Node<D>(node)).collect(Collectors.toCollection(ArrayList::new));
 		final Set<Node<D>> assignedNodesCopy = this.assignedNodes.stream().map(node -> new Node<D>(node)).collect(Collectors.toCollection(HashSet::new));
 		final Set<DirectionalEdge<D>> edgesCopy = new HashSet<DirectionalEdge<D>>();
-		for(DirectionalEdge<D>edge : edges){
+		for(final DirectionalEdge<D>edge : this.edges){
 			edgesCopy.add(new DirectionalEdge<D>(
 							unassignedNodesCopy.get(unassignedNodesCopy.indexOf(edge.getFromNode())),
 							unassignedNodesCopy.get(unassignedNodesCopy.indexOf(edge.getToNode())), 

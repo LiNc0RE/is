@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Node<D> implements Comparable<Node<D>> {
+public class Node<D extends Comparable<D>> implements Comparable<Node<D>> {
 
 	private final String name;
 	private final Set<DirectionalEdge<D>> edgesPointingToNode;
