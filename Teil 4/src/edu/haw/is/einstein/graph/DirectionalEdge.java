@@ -1,7 +1,7 @@
 package edu.haw.is.einstein.graph;
 
 
-public class DirectionalEdge<D> {
+public class DirectionalEdge<D extends Comparable<D>> {
 
 	private final Node<D> from;
 	private final Node<D> to;

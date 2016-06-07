@@ -2,7 +2,11 @@ package edu.haw.is.einstein;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import edu.haw.is.einstein.graph.Node;
 
 public class Main {
 	
@@ -119,8 +123,27 @@ public class Main {
 		addConstraintFor(csp, getraenke, UNGLEICH);
 		addConstraintFor(csp, zigaretten, UNGLEICH);
 		
-		System.out.println(csp.solve());
+		final List<Node<Integer>> solution = csp.solve();
+		prettyPrint(solution);
 	}
+	
+	public static void prettyPrint(final List<Node<Integer>> solution) {
+	final ArrayList<Node<Integer>> sortedSolution = solution.stream().sorted(new Comparator<Node<Integer>>() {
+
+		@Override
+		public int compare(final Node<Integer> node1, final Node<Integer> node2) {
+			return node1.getSolution().compareTo(node2.getSolution());
+		}
+	}).collect(Collectors.toCollection(ArrayList::new));
+	int currentHouse = -1;
+	for (final Node<Integer> node : sortedSolution) {
+		if (currentHouse < node.getSolution()) {
+			System.out.println("Person, die in Haus " + (currentHouse + 1) + " wohnt:");
+			currentHouse++;
+		}
+		System.out.println("    " + node.getName());
+	}
+}
 
 	private static List<Integer> createDomain() {
 		return new ArrayList<>(Arrays.asList(0, 1, 2, 3, 4));
